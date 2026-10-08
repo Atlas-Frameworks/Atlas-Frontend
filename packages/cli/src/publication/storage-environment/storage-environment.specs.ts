@@ -138,6 +138,40 @@ describe('storage-environment', () => {
     });
   });
 
+  describe('optionalStorageValue', () => {
+    it('should prefer the flag when both flag and variable are set', () => {
+      driver.given
+        .environment({ ATLAS_TEST_OPTIONAL: 'env' })
+        .given.flags(['--lock=flag']);
+
+      expect(driver.get.optionalValue('lock', 'ATLAS_TEST_OPTIONAL')).toBe(
+        'flag',
+      );
+    });
+
+    it('should return the trimmed variable when no flag is set', () => {
+      driver.given.environment({ ATLAS_TEST_OPTIONAL: ' env ' });
+
+      expect(driver.get.optionalValue('lock', 'ATLAS_TEST_OPTIONAL')).toBe(
+        'env',
+      );
+    });
+
+    it('should return undefined when the variable is unset', () => {
+      expect(
+        driver.get.optionalValue('lock', 'ATLAS_TEST_OPTIONAL'),
+      ).toBeUndefined();
+    });
+
+    it('should return undefined when the variable is blank', () => {
+      driver.given.environment({ ATLAS_TEST_OPTIONAL: ' ' });
+
+      expect(
+        driver.get.optionalValue('lock', 'ATLAS_TEST_OPTIONAL'),
+      ).toBeUndefined();
+    });
+  });
+
   describe('positiveEnvironmentInteger', () => {
     it('should return undefined when the variable is unset', () => {
       expect(driver.get.positiveInteger('ATLAS_TEST_LIMIT')).toBeUndefined();

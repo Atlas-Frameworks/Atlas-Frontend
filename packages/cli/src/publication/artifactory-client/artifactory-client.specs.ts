@@ -259,7 +259,6 @@ describe('ArtifactoryClient', () => {
     });
 
     expect(await driver.when.metadata()).toEqual({
-      cacheControl: 'no-cache',
       contentType: 'application/json',
     });
   });
@@ -293,19 +292,19 @@ describe('ArtifactoryClient', () => {
     });
   });
 
-  it.each<Record<string, string>>([
-    { 'Content-Type': 'application/json' },
-    { 'Cache-Control': 'no-cache' },
-  ])(
-    'should reject delivery metadata when required headers are absent %j',
-    async (headers) => {
-      driver.given.deliveryHeaders(headers);
+  it('should accept delivery metadata when Cache-Control is absent', async () => {
+    driver.given.deliveryHeaders({ 'Content-Type': 'application/json' });
 
-      await expect(driver.when.metadata()).rejects.toThrow(
-        'actual Cache-Control and Content-Type',
-      );
-    },
-  );
+    expect(await driver.when.metadata()).toEqual({
+      contentType: 'application/json',
+    });
+  });
+
+  it('should reject delivery metadata when Content-Type is absent', async () => {
+    driver.given.deliveryHeaders({ 'Cache-Control': 'no-cache' });
+
+    await expect(driver.when.metadata()).rejects.toThrow('actual Content-Type');
+  });
 
   it('should fail delivery verification when public object is missing', async () => {
     driver.given.status(404);

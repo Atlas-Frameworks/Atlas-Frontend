@@ -1,4 +1,5 @@
 import {
+  optionalStorageValue,
   readPositiveEnvironmentInteger,
   requiredStorageValue,
   resolveParallelUploads,
@@ -22,6 +23,7 @@ const ENVIRONMENT_KEYS = [
   'ATLAS_PARALLEL_UPLOADS',
   'ATLAS_TEST_LIMIT',
   'ATLAS_TEST_REQUIRED',
+  'ATLAS_TEST_OPTIONAL',
 ];
 
 export class StorageEnvironmentDriver {
@@ -51,6 +53,14 @@ export class StorageEnvironmentDriver {
     requiredValue: (flag: string | undefined, environmentName: string) =>
       this.withEnvironment(() =>
         requiredStorageValue({
+          args: new CliArguments(['publish', 'x', ...this.flags]),
+          flag,
+          environmentName,
+        }),
+      ),
+    optionalValue: (flag: string | undefined, environmentName: string) =>
+      this.withEnvironment(() =>
+        optionalStorageValue({
           args: new CliArguments(['publish', 'x', ...this.flags]),
           flag,
           environmentName,

@@ -71,20 +71,24 @@ describe('createPublicationStorage', () => {
     'ATLAS_ARTIFACTORY_REPOSITORY',
     'ATLAS_ARTIFACTORY_ACCESS_TOKEN',
     'ATLAS_REGISTRY_URL',
-    'ATLAS_ARTIFACTORY_LOCK_RESOURCE',
   ])('should reject configuration when %s is missing', async (name) => {
     driver.given.nativeEnvironment({ [name]: undefined });
 
     await expect(driver.when.create()).rejects.toThrow(name);
   });
 
-  it('should reject blank lock configuration when no resource is named', async () => {
-    driver.given.nativeEnvironment({ ATLAS_ARTIFACTORY_LOCK_RESOURCE: ' ' });
+  it.each([undefined, ' '])(
+    'should allow writes without an external lock when the lock resource is %s',
+    async (resource) => {
+      driver.given.nativeEnvironment({
+        ATLAS_ARTIFACTORY_LOCK_RESOURCE: resource,
+        ATLAS_PUBLICATION_LOCK: undefined,
+      });
+      await driver.when.create();
 
-    await expect(driver.when.create()).rejects.toThrow(
-      'ATLAS_ARTIFACTORY_LOCK_RESOURCE',
-    );
-  });
+      await expect(driver.when.assertExternalLock()).resolves.toBeUndefined();
+    },
+  );
 
   it('should reject token flags when no token environment variable is configured', async () => {
     driver.given.nativeEnvironment({

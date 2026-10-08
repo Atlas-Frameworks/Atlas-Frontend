@@ -48,6 +48,18 @@ export function requiredStorageValue(options: {
   return value;
 }
 
+export function optionalStorageValue(options: {
+  args?: CliArguments;
+  flag?: string;
+  environmentName: string;
+}): string | undefined {
+  const { args, flag, environmentName } = options;
+  const value =
+    (flag ? args?.flag(flag) : undefined) ?? process.env[environmentName];
+
+  return value?.trim() || undefined;
+}
+
 export const DEFAULT_PARALLEL_UPLOADS = 16;
 
 export function resolveParallelUploads(args?: CliArguments): number {

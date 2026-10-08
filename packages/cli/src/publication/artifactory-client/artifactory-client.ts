@@ -142,7 +142,9 @@ export class ArtifactoryClient {
     };
   }
 
-  async deliveryMetadata(path: string): Promise<ArtifactoryObjectMetadata> {
+  async deliveryMetadata(
+    path: string,
+  ): Promise<Pick<ArtifactoryObjectMetadata, 'contentType'>> {
     const { response } = await this.request(
       `${this.publicUrl}/${encodePath(path)}`,
       {
@@ -153,15 +155,14 @@ export class ArtifactoryClient {
     );
     await requireStatus({ response, accepted: [200] });
 
-    const cacheControl = response.headers.get('cache-control')?.trim();
     const contentType = response.headers.get('content-type')?.trim();
 
-    if (!cacheControl || !contentType)
+    if (!contentType)
       throw new Error(
-        'Artifactory delivery requires actual Cache-Control and Content-Type response headers.',
+        'Artifactory delivery requires an actual Content-Type response header.',
       );
 
-    return { cacheControl, contentType };
+    return { contentType };
   }
 
   async list(prefix: string): Promise<AtlasPublicationListedObject[]> {

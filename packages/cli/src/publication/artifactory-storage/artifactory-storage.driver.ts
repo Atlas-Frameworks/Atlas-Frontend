@@ -40,7 +40,7 @@ export class ArtifactoryStorageDriver {
       .mockResolvedValue(this.metadata),
     deliveryMetadata: jest
       .fn<ArtifactoryClient['deliveryMetadata']>()
-      .mockResolvedValue(this.metadata),
+      .mockResolvedValue({ contentType: this.metadata.contentType }),
     list: jest.fn<ArtifactoryClient['list']>().mockResolvedValue([]),
     upload: jest.fn<ArtifactoryClient['upload']>().mockResolvedValue(undefined),
     remove: jest.fn<ArtifactoryClient['remove']>().mockResolvedValue(undefined),
@@ -85,11 +85,8 @@ export class ArtifactoryStorageDriver {
         body === undefined ? undefined : this.chunks(Buffer.from(body)),
       );
     },
-    deliveryHeaders: (headers: Partial<typeof this.metadata>) => {
-      this.client.deliveryMetadata.mockResolvedValue({
-        ...this.metadata,
-        ...headers,
-      });
+    deliveryHeaders: (headers: { contentType: string }) => {
+      this.client.deliveryMetadata.mockResolvedValue(headers);
     },
     failure: (
       operation:
@@ -134,7 +131,7 @@ export class ArtifactoryStorageDriver {
       this.client.deliveryMetadata.mockImplementation(async () => {
         await this.trackRequest();
 
-        return this.metadata;
+        return { contentType: this.metadata.contentType };
       });
     },
     files: (count: number) => {

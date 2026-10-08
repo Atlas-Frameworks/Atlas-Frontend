@@ -212,7 +212,7 @@ function buildStorageEnvironmentHelp({
     },
     {
       label: 'ATLAS_ARTIFACTORY_LOCK_RESOURCE',
-      description: 'Required shared external writer lock name',
+      description: 'Optional shared external writer lock name; when set, writes require it',
     },
     {
       label: 'ATLAS_PUBLICATION_LOCK',
@@ -260,7 +260,7 @@ function buildStorageOptionsHelp({
     },
     {
       label: '--lock-resource <name>',
-      description: 'Artifactory shared external writer lock name',
+      description: 'Optional Artifactory shared external writer lock name',
     },
   ];
 }

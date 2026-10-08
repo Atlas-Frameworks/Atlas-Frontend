@@ -357,9 +357,9 @@ The `publish`, `deploy`, `remove-preview`, and `prune-previews` commands write t
 | `--key-prefix <prefix>`       | `ATLAS_STORAGE_KEY_PREFIX`        | Key prefix inside the bucket or repository. Artifactory defaults to `atlas`.                |
 | `--region <region>`           | `ATLAS_S3_REGION`                 | S3 signing region. Falls back to `AWS_REGION`, then `AWS_DEFAULT_REGION`, then `us-east-1`. |
 | `--repository <name>`         | `ATLAS_ARTIFACTORY_REPOSITORY`    | Artifactory local Generic repository.                                                       |
-| `--lock-resource <name>`      | `ATLAS_ARTIFACTORY_LOCK_RESOURCE` | Name of the shared external writer lock for Artifactory.                                    |
+| `--lock-resource <name>`      | `ATLAS_ARTIFACTORY_LOCK_RESOURCE` | Optional. Name of the shared external writer lock for Artifactory.                          |
 
-If no provider is configured through flags, environment variables, or `atlas.registry.ts`, the command fails with [`ATLAS_STORAGE_NOT_CONFIGURED`](errors.md#cli-errors). For Artifactory setup and its Jenkins lock, see [Artifactory](../deploy/artifactory.md).
+If no provider is configured through flags, environment variables, or `atlas.registry.ts`, the command fails with [`ATLAS_STORAGE_NOT_CONFIGURED`](errors.md#cli-errors). For Artifactory setup and its optional Jenkins lock, see [Artifactory](../deploy/artifactory.md).
 
 ## Registry config file
 
@@ -427,7 +427,7 @@ Without the access key variables, the AWS SDK default credential chain applies. 
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | `ATLAS_ARTIFACTORY_REPOSITORY`         | Local Generic repository.                                                                                      |
 | `ATLAS_ARTIFACTORY_ACCESS_TOKEN`       | Access token. Environment only; there is no flag.                                                              |
-| `ATLAS_ARTIFACTORY_LOCK_RESOURCE`      | Name of the shared external lock.                                                                              |
+| `ATLAS_ARTIFACTORY_LOCK_RESOURCE`      | Optional. When set, writes require the matching Jenkins lock.                                                  |
 | `ATLAS_PUBLICATION_LOCK`               | Set by the Jenkins `lock` step. Must equal the lock resource name. Setting it by hand does not acquire a lock. |
 | `ATLAS_ARTIFACTORY_REQUEST_TIMEOUT_MS` | Request timeout in milliseconds. Default `60000`.                                                              |
 | `ATLAS_ARTIFACTORY_MAX_BUFFERED_BYTES` | Per-object buffer limit in bytes. Default `268435456`.                                                         |

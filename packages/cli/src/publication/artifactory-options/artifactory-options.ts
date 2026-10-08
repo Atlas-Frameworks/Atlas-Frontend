@@ -1,5 +1,6 @@
 import type { ArtifactoryOptions } from '../artifactory-storage/artifactory-storage.js';
 import {
+  optionalStorageValue,
   readPositiveEnvironmentInteger,
   requiredStorageValue,
 } from '../storage-environment/storage-environment.js';
@@ -8,7 +9,7 @@ import type { CliArguments } from '../../shared/index.js';
 export function readArtifactoryOptionsFromEnvironment(
   args?: CliArguments,
 ): ArtifactoryOptions {
-  const lockResource = requiredStorageValue({
+  const lockResource = optionalStorageValue({
     args,
     flag: 'lock-resource',
     environmentName: 'ATLAS_ARTIFACTORY_LOCK_RESOURCE',
@@ -40,6 +41,8 @@ export function readArtifactoryOptionsFromEnvironment(
       'ATLAS_ARTIFACTORY_MAX_BUFFERED_BYTES',
     ),
     assertExclusivePublishing: () => {
+      if (!lockResource) return;
+
       if (process.env.ATLAS_PUBLICATION_LOCK !== lockResource) {
         throw new Error(
           `Artifactory writes require the shared external lock "${lockResource}". Run the entire Atlas command inside Jenkins lock(resource: '${lockResource}', variable: 'ATLAS_PUBLICATION_LOCK').`,

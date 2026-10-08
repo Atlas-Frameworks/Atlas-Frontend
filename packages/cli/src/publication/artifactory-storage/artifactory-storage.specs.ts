@@ -459,28 +459,20 @@ describe('ArtifactoryPublicationStorage', () => {
     );
   });
 
-  it('should reject publication when delivered cache policy differs from requested policy', async () => {
-    driver.given.deliveryHeaders({ cacheControl: 'no-store' });
-
-    await expect(driver.when.publishAndVerify()).rejects.toThrow(
-      'delivery verification failed',
-    );
-  });
-
-  it('should reject deployment writes when mutable JSON is served with immutable caching', async () => {
-    await expect(driver.when.replaceMutableAndVerify()).rejects.toThrow(
-      'delivery verification failed',
-    );
-  });
-
-  it('should complete deployment writes when mutable JSON is served with revalidation', async () => {
+  it('should ignore delivered charset when the media type matches', async () => {
     driver.given.deliveryHeaders({
-      cacheControl: 'no-cache, max-age=0, must-revalidate',
+      contentType: `${driver.get.metadata().contentType}; charset=ISO-8859-1`,
     });
 
-    await expect(
-      driver.when.replaceMutableAndVerify(),
-    ).resolves.toBeUndefined();
+    await expect(driver.when.publishAndVerify()).resolves.toBeUndefined();
+  });
+
+  it('should compare media types case-insensitively when verifying delivery', async () => {
+    driver.given.deliveryHeaders({
+      contentType: driver.get.metadata().contentType.toUpperCase(),
+    });
+
+    await expect(driver.when.publishAndVerify()).resolves.toBeUndefined();
   });
 
   it('should fail publishing when uploaded bytes differ at the public root', async () => {

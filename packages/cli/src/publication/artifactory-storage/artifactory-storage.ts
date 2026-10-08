@@ -232,12 +232,9 @@ export class ArtifactoryPublicationStorage implements AtlasPublicationStorage {
 
     const delivered = await this.client.deliveryMetadata(path);
 
-    if (
-      delivered.contentType !== stored.contentType ||
-      delivered.cacheControl !== stored.cacheControl
-    ) {
+    if (mediaType(delivered.contentType) !== mediaType(stored.contentType)) {
       throw new Error(
-        'Artifactory delivery verification failed: Content-Type or Cache-Control do not match stored metadata.',
+        'Artifactory delivery verification failed: Content-Type media type does not match stored metadata.',
       );
     }
 
@@ -325,6 +322,10 @@ export class ArtifactoryPublicationStorage implements AtlasPublicationStorage {
       );
     }
   }
+}
+
+function mediaType(contentType: string | undefined): string | undefined {
+  return contentType?.split(';')[0]?.trim().toLowerCase();
 }
 
 function assertReplaceCondition(

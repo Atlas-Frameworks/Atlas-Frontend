@@ -11,7 +11,7 @@ Artifactory is a built-in storage provider, like S3. You select it with `ATLAS_S
 
 ## Understand the tradeoff first
 
-The documented Artifactory API has no atomic conditional write, so Atlas cannot lock the registry inside Artifactory the way it does on S3. Instead, every Atlas command that writes to the repository must run inside one shared Jenkins `lock` block. This has two operational costs:
+The documented Artifactory API has no atomic conditional write, so Atlas cannot lock the registry inside Artifactory the way it does on S3. Instead, Atlas relies on you to keep concurrent writers out. Atlas does not require a lock. Without one, nothing stops two jobs from writing the same registry files at once, and the last writer can silently overwrite the other. To prevent that, run every Atlas command that writes to the repository inside one shared Jenkins `lock` block and set `ATLAS_ARTIFACTORY_LOCK_RESOURCE`, so Atlas rejects writes made outside the lock. The rest of this guide assumes you use the lock. It has two operational costs:
 
 - Writes to one repository and key prefix are fully serialized, so parallel publish and deploy jobs wait for each other.
 - When a command fails, Atlas cannot always tell whether its last write reached Artifactory. The pipeline in this guide therefore pauses on a manual Jenkins `input` step while it still holds the lock. An operator confirms that no request is still running and reconciles the stored state before other writers continue. Until someone answers that prompt, every other Atlas job for this repository waits.
@@ -80,6 +80,8 @@ Give the token Read, Deploy, and Annotate permissions on the Atlas key prefix, s
 
 ## Use one shared writer lock
 
+The lock is optional. If you do not set `ATLAS_ARTIFACTORY_LOCK_RESOURCE` (or `--lock-resource`), Atlas performs no lock check and you must serialize writers yourself. The rest of this section applies when you set it.
+
 Every job that writes to this repository and key prefix must run the entire Atlas command inside the same named lock resource on the same Jenkins controller. This applies to publish, deploy, rollback, and preview cleanup jobs. If your shared resource has a different name, set `ATLAS_ARTIFACTORY_LOCK_RESOURCE` to that name. No background job and no manual upload may write to the prefix outside the lock.
 
 Before each write, Atlas checks that `ATLAS_PUBLICATION_LOCK` equals the configured lock name. Jenkins sets that variable inside the `lock` block. The check catches a job that forgot the lock, but it does not prove that the job holds the lock: setting the variable by hand does not acquire anything. Serialization comes from the Jenkins `lock` block itself. The whole command must stay inside the block, because a preview upload starts before Atlas takes its own internal lease.
@@ -91,7 +93,7 @@ Atlas checks whether a file exists and which version it has while the external l
 - Do not cancel the approval prompt in the example to unblock queued jobs while a request may still be running.
 - Independent Jenkins controllers need a shared external coordinator. Locks with the same name on two controllers do not serialize anything.
 
-Read-only operations, including dry runs, do not require the lock to be held. The lock name must still be configured.
+Read-only operations, including dry runs, do not require the lock to be held.
 
 ## Connect browser delivery
 
@@ -99,12 +101,12 @@ Browsers read the registry from the public root, not from the Artifactory API.
 
 1. Set `artifactRegistryUrl` in each Host's [`atlas.runtime.json`](bootstrap.md#runtime-config) to the same URL as `ATLAS_REGISTRY_URL`.
 2. Serve that root from a delivery path inside your approved network, or through a gateway that can authenticate browser requests. A CI token is not browser authentication. Never put the access token in browser bundles or in `atlas.runtime.json`.
-3. Make the delivery path serve the stored bytes unchanged, with the correct MIME types, CORS headers for your Host origins, and the cache policy for each path. The [cache table in Host bootstrap](bootstrap.md#set-cache-headers) lists the required `Cache-Control` values.
+3. Make the delivery path serve the stored bytes unchanged, with the correct MIME types, CORS headers for your Host origins, and the cache policy for each path. Atlas does not verify the delivered `Cache-Control` header, so check it yourself. The [cache table in Host bootstrap](bootstrap.md#set-cache-headers) lists the required `Cache-Control` values.
 4. Keep serving the Host from your own web server or a dedicated origin. Do not use Artifactory's HTML content browser as the Host page: JFrog sandboxes that HTML and can block JavaScript. Do not weaken Artifactory's global CSP to work around it.
 
 Atlas stores the content type in the `artifactory.content-type` property and the cache policy in the `atlas.cache-control` property of each uploaded file. The cache property records the policy that Atlas expects; it does not configure HTTP caching. Configure your delivery proxy to send that policy.
 
-After every write, Atlas checks the stored checksum, size, and properties. It then runs the `invalidate` hook from `atlas.registry.ts`, if you configured one, and checks the public root: it compares the `Content-Type` and `Cache-Control` headers, and it downloads each file to compare its size and SHA-256 digest with private storage. A command succeeds only when both checks pass. If your CDN needs an explicit cache refresh, do it in the `invalidate` hook, and make the hook wait until the refreshed content is available.
+After every write, Atlas checks the stored checksum, size, and properties. It then runs the `invalidate` hook from `atlas.registry.ts`, if you configured one, and checks the public root: it compares the media type of the `Content-Type` header (the part before any `;`, so a different `charset` is accepted), and it downloads each file to compare its size and SHA-256 digest with private storage. A command succeeds only when both checks pass. If your CDN needs an explicit cache refresh, do it in the `invalidate` hook, and make the hook wait until the refreshed content is available.
 
 Publishing checks the release files and their manifest before it registers the release, and then checks the updated `registry.json`. Deploying checks the environment state and the host deployment manifests that it wrote. Preview cleanup checks the updated `registry.json`.
 
@@ -126,7 +128,7 @@ A CLI flag overrides its environment variable. Secrets have no CLI flag. An expl
 | `ATLAS_STORAGE_KEY_PREFIX`             | `--key-prefix`      | The folder inside the repository. The default is `atlas`.          |
 | `ATLAS_REGISTRY_URL`                   | `--registry-url`    | Required. The browser-readable registry root.                      |
 | `ATLAS_ARTIFACTORY_ACCESS_TOKEN`       | None                | Required. The access token used for writes.                        |
-| `ATLAS_ARTIFACTORY_LOCK_RESOURCE`      | `--lock-resource`   | Required. The name of the shared Jenkins lock.                     |
+| `ATLAS_ARTIFACTORY_LOCK_RESOURCE`      | `--lock-resource`   | Optional. When set, writes require the matching Jenkins lock.      |
 | `ATLAS_PUBLICATION_LOCK`               | None                | Set by the Jenkins `lock` block to the name of the held lock.      |
 | `ATLAS_ARTIFACTORY_REQUEST_TIMEOUT_MS` | None                | A positive integer. The default is `60000` (60 seconds).           |
 | `ATLAS_ARTIFACTORY_MAX_BUFFERED_BYTES` | None                | A positive integer. The default is `268435456` (256 MiB per file). |
