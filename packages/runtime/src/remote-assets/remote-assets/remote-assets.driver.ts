@@ -54,6 +54,12 @@ export class RemoteAssetsDriver {
       fragment.appendChild(this.createStyle(cssText));
       this.document.head.appendChild(fragment);
     },
+    shadowRootStyleAdded: (appId: string, cssText: string) => {
+      this.sessionsByAppId
+        .get(appId)!
+        .boundary.getRootNode()
+        .appendChild(this.createStyle(cssText));
+    },
     boundaryStyleAdded: (appId: string, cssText: string) => {
       this.sessionsByAppId
         .get(appId)!
@@ -81,6 +87,8 @@ export class RemoteAssetsDriver {
       [...this.sessionsByAppId.get(appId)!.boundary.getRootNode().childNodes]
         .filter((node): node is HTMLStyleElement => node.nodeName === 'STYLE')
         .map((style) => style.textContent ?? ''),
+    shadowRootAppendChild: (appId: string) =>
+      this.sessionsByAppId.get(appId)!.boundary.getRootNode().appendChild,
     boundaryChildAppend: (appId: string) =>
       this.sessionsByAppId.get(appId)!.boundary.firstElementChild?.append,
     addedStyleTexts: () =>

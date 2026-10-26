@@ -2,6 +2,8 @@ export type AssetResolver = (value: string) => string;
 
 export type AtlasAssetRewriteRelease = () => void;
 
+export type InsertionTarget = Element | ShadowRoot;
+
 export type InsertedNodeRewriter = (nodes: readonly (Node | string)[]) => void;
 
 export interface DocumentStyleRewriteSession {

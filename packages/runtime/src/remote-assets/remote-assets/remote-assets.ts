@@ -7,6 +7,7 @@ import {
 import type { AtlasAssetRewriteRelease } from '../remote-assets.types.js';
 import {
   createDocumentStyleRewriteSession,
+  findShadowRootOfBoundary,
   registerDocumentStyleRewrite,
 } from '../document-styles.js';
 import {
@@ -28,6 +29,10 @@ export function startRemoteAssetRewrite(
   rewriteAssetUrls(boundary, resolver);
 
   const releaseInsertionRewrite = patchBoundaryInsertion(boundary, resolver);
+  const shadowRoot = findShadowRootOfBoundary(boundary);
+  const releaseShadowRootInsertionRewrite = shadowRoot
+    ? patchBoundaryInsertion(shadowRoot, resolver)
+    : () => undefined;
   const releaseDocumentStyleRewrite = registerDocumentStyleRewrite(
     document,
     createDocumentStyleRewriteSession({
@@ -40,6 +45,7 @@ export function startRemoteAssetRewrite(
 
   return () => {
     releaseInsertionRewrite();
+    releaseShadowRootInsertionRewrite();
     releaseDocumentStyleRewrite();
     observer?.disconnect();
   };

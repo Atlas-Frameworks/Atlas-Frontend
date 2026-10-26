@@ -162,7 +162,7 @@ function mirrorStyle(
   session.mirroredStyles.add(mirroredStyle);
 }
 
-function findShadowRootOfBoundary(
+export function findShadowRootOfBoundary(
   boundary: HTMLElement,
 ): ShadowRoot | undefined {
   const root = boundary.getRootNode?.();

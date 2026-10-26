@@ -4,6 +4,7 @@ import type {
   AssetResolver,
   AtlasAssetRewriteRelease,
   InsertedNodeRewriter,
+  InsertionTarget,
 } from './remote-assets.types.js';
 
 const URL_ATTRIBUTE_NAMES = ['src', 'href', 'poster', 'data'] as const;
@@ -46,7 +47,7 @@ export function rewriteAssetUrls(root: Element, resolver: AssetResolver): void {
 }
 
 export function patchBoundaryInsertion(
-  boundary: HTMLElement,
+  boundary: InsertionTarget,
   resolver: AssetResolver,
 ): AtlasAssetRewriteRelease {
   return patchElementInsertionMethods(boundary, (nodes) =>
@@ -55,7 +56,7 @@ export function patchBoundaryInsertion(
 }
 
 export function patchSingleNodeInsertionMethod(
-  element: Element,
+  element: InsertionTarget,
   methodName: 'appendChild' | 'insertBefore' | 'replaceChild',
   rewriteInsertedNodes: InsertedNodeRewriter,
 ): AtlasAssetRewriteRelease {
@@ -91,7 +92,7 @@ function rewriteNodeAssetUrls(node: Node, resolver: AssetResolver): void {
 }
 
 function patchElementInsertionMethods(
-  element: Element,
+  element: InsertionTarget,
   rewriteInsertedNodes: InsertedNodeRewriter,
 ): AtlasAssetRewriteRelease {
   const releases = [
@@ -122,7 +123,7 @@ function patchElementInsertionMethods(
 }
 
 function patchVariadicInsertionMethod(
-  element: Element,
+  element: InsertionTarget,
   methodName: 'append' | 'prepend' | 'replaceChildren',
   rewriteInsertedNodes: InsertedNodeRewriter,
 ): AtlasAssetRewriteRelease {
@@ -137,7 +138,7 @@ function patchVariadicInsertionMethod(
 }
 
 function patchElementMethod(
-  element: Element,
+  element: InsertionTarget,
   methodName: string,
   patchedMethod: (...arguments_: unknown[]) => unknown,
 ): AtlasAssetRewriteRelease {

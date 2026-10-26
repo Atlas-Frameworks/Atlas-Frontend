@@ -76,6 +76,28 @@ describe('startRemoteAssetRewrite', () => {
       );
     });
 
+    it('should resolve asset urls in a style added to the shadow root when Angular adds it there', () => {
+      driver.when.shadowRootStyleAdded(
+        'orders',
+        ".aaa[_ngcontent-orders-c0]{background:url('/assets/photo.png')}",
+      );
+
+      expect(driver.get.shadowStyleTexts('orders')).toEqual([
+        ".aaa[_ngcontent-orders-c0]{background:url('http://localhost:4201/assets/photo.png')}",
+      ]);
+    });
+
+    it('should resolve asset urls in an unscoped style added to the shadow root when the style references assets', () => {
+      driver.when.shadowRootStyleAdded(
+        'orders',
+        ".aaa{background:url('/assets/photo.png')}",
+      );
+
+      expect(driver.get.shadowStyleTexts('orders')).toEqual([
+        ".aaa{background:url('http://localhost:4201/assets/photo.png')}",
+      ]);
+    });
+
     it('should mirror an owned document style into the shadow root when Angular adds it', () => {
       driver.when.documentStyleAdded(
         '.title[_ngcontent-orders-c0]{color:rebeccapurple}',
@@ -135,6 +157,14 @@ describe('startRemoteAssetRewrite', () => {
       );
     });
 
+    it('should leave shadow root insertion methods unpatched when the app unmounts', () => {
+      driver.when.appUnmounted('orders');
+
+      expect(driver.get.shadowRootAppendChild('orders')).toBe(
+        Node.prototype.appendChild,
+      );
+    });
+
     it('should leave descendant insertion methods unpatched when the app unmounts', () => {
       driver.when.boundaryImageAppended('orders', '/assets/images/image.jpg');
 
@@ -164,6 +194,25 @@ describe('startRemoteAssetRewrite', () => {
       expect(driver.get.addedStyleTexts()).toEqual([
         ".aaa[_ngcontent-orders-c0]{background:url('http://localhost:4201/assets/photo.png')}",
         ".aaa[_ngcontent-catalog-c0]{background:url('http://localhost:4202/assets/photo.png')}",
+      ]);
+    });
+
+    it('should resolve each shadow root style against its own remote origin when both apps add styles', () => {
+      driver.when.shadowRootStyleAdded(
+        'orders',
+        ".aaa{background:url('/assets/photo.png')}",
+      );
+      driver.when.shadowRootStyleAdded(
+        'catalog',
+        ".aaa{background:url('/assets/photo.png')}",
+      );
+
+      expect([
+        ...driver.get.shadowStyleTexts('orders'),
+        ...driver.get.shadowStyleTexts('catalog'),
+      ]).toEqual([
+        ".aaa{background:url('http://localhost:4201/assets/photo.png')}",
+        ".aaa{background:url('http://localhost:4202/assets/photo.png')}",
       ]);
     });
 
