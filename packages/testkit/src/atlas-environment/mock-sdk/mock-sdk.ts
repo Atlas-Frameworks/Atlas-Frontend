@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker';
 import {
+  connectAtlasSdkFacadeOverrides,
   createAtlasEventBus,
   createAtlasSdk,
   type AtlasEventMap,
@@ -40,7 +41,9 @@ export function createMockSdk<
     hostData = {},
     events = createAtlasEventBus<TEvents>(),
     navigateTo = () => undefined,
-    getWidget = anInertWidgetResolver(),
+    getWidget,
+    assetUrl,
+    assetBaseUrl,
     ...extensions
   } = overrides;
 
@@ -50,9 +53,11 @@ export function createMockSdk<
     eventBus: events,
     hostData: { name: faker.company.name(), ...hostData },
   });
-  Object.assign(sdk, extensions, { navigateTo, getWidget });
-
-  return new Proxy(sdk, {
+  Object.assign(sdk, extensions, {
+    navigateTo,
+    getWidget: anInertWidgetResolver(),
+  });
+  const mockSdk = new Proxy(sdk, {
     get: (target, property, receiver) =>
       typeof property === 'symbol' ||
       property in target ||
@@ -60,6 +65,14 @@ export function createMockSdk<
         ? Reflect.get(target, property, receiver)
         : aNotMockedMember(property),
   }) as AtlasSdk<THostSdk, TEvents>;
+
+  connectAtlasSdkFacadeOverrides(mockSdk, {
+    getWidget,
+    assetUrl,
+    assetBaseUrl,
+  });
+
+  return mockSdk;
 }
 
 function anInertWidgetResolver(): AtlasGetWidget {

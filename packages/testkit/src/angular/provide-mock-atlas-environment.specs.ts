@@ -72,4 +72,36 @@ describe('provideMockAtlasEnvironment', () => {
       expect.objectContaining({ code: 'ATLAS_APP_CONTEXT_MISSING' }),
     );
   });
+
+  it('should call the mocked getWidget with widget id and options when a widget is requested through injectAtlasSdk', () => {
+    const getWidget = jest.fn();
+    const widgetId = faker.string.uuid();
+    const options = { inputs: { count: faker.number.int() } };
+
+    driver.given.overrides({ sdk: { getWidget } }).when.provided();
+
+    driver.get.atlas().getWidget(widgetId, options);
+
+    expect(getWidget).toHaveBeenCalledWith(widgetId, options);
+  });
+
+  it('should return the mocked asset url through injectAtlasSdk when assetUrl is mocked', () => {
+    const url = faker.internet.url();
+
+    driver.given
+      .overrides({ sdk: { assetUrl: jest.fn(() => url) } })
+      .when.provided();
+
+    expect(driver.get.atlas().assetUrl(faker.system.fileName())).toBe(url);
+  });
+
+  it('should return the mocked asset base url through injectAtlasSdk when assetBaseUrl is mocked', () => {
+    const url = faker.internet.url();
+
+    driver.given
+      .overrides({ sdk: { assetBaseUrl: jest.fn(() => url) } })
+      .when.provided();
+
+    expect(driver.get.atlas().assetBaseUrl()).toBe(url);
+  });
 });

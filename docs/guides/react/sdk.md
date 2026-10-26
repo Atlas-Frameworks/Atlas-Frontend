@@ -243,6 +243,30 @@ render(<SaveOrderButton />, {
 });
 ```
 
+To check which Widget a component renders, pass a `getWidget` spy. It receives the same arguments as the React `getWidget()`, and a component it returns renders in place of the Widget. This test uses `OrderSidebar` from [Render a Widget](#render-a-widget):
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import { mockAtlasEnvironment } from '@atlas/testkit';
+import { MockAtlasEnvironmentProvider } from '@atlas/testkit/react';
+import { OrderSidebar } from './order-sidebar';
+
+function OrderSummaryStub({ orderId }: { orderId: string }) {
+  return <p>Summary of {orderId}</p>;
+}
+
+const getWidget = jest.fn(() => OrderSummaryStub);
+const environment = mockAtlasEnvironment({ sdk: { getWidget } });
+
+render(
+  <MockAtlasEnvironmentProvider environment={environment}>
+    <OrderSidebar orderId="42" />
+  </MockAtlasEnvironmentProvider>,
+);
+
+expect(screen.getByText('Summary of 42')).toBeTruthy();
+```
+
 See [Testing Apps and Hosts](../testing-apps-and-hosts.md) for navigation, host data, readiness, and Host tests.
 
 ## API summary

@@ -2,16 +2,23 @@ import type { AtlasManifest } from '@atlas/schema';
 import type {
   AtlasEventBus,
   AtlasEventMap,
-  AtlasGetWidget,
   AtlasHostData,
   AtlasHostDataOf,
   AtlasNavigationState,
   AtlasSdk,
+  AtlasSdkFacadeOverrides,
 } from '@atlas/sdk/host';
 import type { AtlasAppContext } from '@atlas/sdk/lifecycle';
 import type { AtlasNavigation } from '@atlas/sdk/navigation';
 
-type CoreSdkKey = 'hostId' | 'hostData' | 'events' | 'navigateTo' | 'getWidget';
+type CoreSdkKey =
+  | 'hostId'
+  | 'hostData'
+  | 'events'
+  | 'navigateTo'
+  | 'getWidget'
+  | 'assetUrl'
+  | 'assetBaseUrl';
 
 export type NavigateToApp = (
   appId: string,
@@ -30,8 +37,8 @@ export type MockAtlasSdkOverrides<
   hostData?: MockAtlasHostData<THostSdk>;
   events?: AtlasEventBus<TEvents>;
   navigateTo?: NavigateToApp;
-  getWidget?: AtlasGetWidget;
-} & Partial<Omit<THostSdk, CoreSdkKey>>;
+} & AtlasSdkFacadeOverrides &
+  Partial<Omit<THostSdk, CoreSdkKey>>;
 
 export interface MockAtlasAppOverrides {
   manifest?: Partial<AtlasManifest>;

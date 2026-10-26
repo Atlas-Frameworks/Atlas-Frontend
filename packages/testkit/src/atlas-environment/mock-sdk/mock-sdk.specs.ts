@@ -107,21 +107,15 @@ describe('createMockSdk', () => {
     expect(() => sdk.navigateTo(faker.string.uuid())).not.toThrow();
   });
 
-  it('should call the mocked getWidget with the widget id when a widget is requested', () => {
+  it('should return an inert widget handle for the requested id when getWidget is mocked', () => {
     const widgetId = faker.string.uuid();
-    const getWidget = jest.fn(() => ({
-      id: widgetId,
-      name: faker.commerce.productName(),
-      mount: async () => ({ unmount: async () => undefined }),
-    }));
-    const sdk = createMockSdk<CustomerHostSdk, OrderEvents>({
-      navigation: createMemoryNavigation(),
-      overrides: { getWidget },
-    });
 
-    sdk.getWidget(widgetId);
-
-    expect(getWidget).toHaveBeenCalledWith(widgetId);
+    expect(
+      createMockSdk<CustomerHostSdk, OrderEvents>({
+        navigation: createMemoryNavigation(),
+        overrides: { getWidget: jest.fn() },
+      }).getWidget(widgetId).id,
+    ).toBe(widgetId);
   });
 
   it('should return a widget handle for the requested id when getWidget is not mocked', () => {

@@ -10,7 +10,14 @@ import {
 } from '@angular/core';
 import type { AtlasAppContext } from '../../lifecycle.js';
 import { updateAtlasHostData } from '../../core/host-data/host-data.js';
-import { createAtlasSdk } from '../../core/sdk-factory/index.js';
+import {
+  connectAtlasSdkFacadeOverrides,
+  type AtlasSdkFacadeOverrides,
+} from '../../core/sdk-facade-overrides/sdk-facade-overrides.js';
+import {
+  connectAtlasWidgetResolver,
+  createAtlasSdk,
+} from '../../core/sdk-factory/index.js';
 import type { AtlasSdk as AtlasSdkValue } from '../../core/sdk-types/index.js';
 import { anAppContext } from '../../testkit/app-context.testkit.js';
 import { aMemoryNavigation } from '../../testkit/navigation.testkit.js';
@@ -45,9 +52,22 @@ export class InjectAtlasSdkDriver {
   private atlas!: AngularAtlasSdk<CustomerHostSdk>;
   private otherAtlas!: AngularAtlasSdk<CustomerHostSdk>;
 
+  constructor() {
+    connectAtlasWidgetResolver(this.sdk, (widgetId) => ({
+      id: widgetId,
+      name: faker.commerce.productName(),
+      mount: async () => ({ unmount: async () => undefined }),
+    }));
+  }
+
   readonly given = {
     appContext: (context: AtlasAppContext | undefined): this => {
       this.context = context;
+
+      return this;
+    },
+    facadeOverrides: (overrides: AtlasSdkFacadeOverrides) => {
+      connectAtlasSdkFacadeOverrides(this.sdk, overrides);
 
       return this;
     },

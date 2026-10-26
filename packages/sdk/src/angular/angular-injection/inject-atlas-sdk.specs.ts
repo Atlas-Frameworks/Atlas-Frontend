@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { jest } from '@jest/globals';
 import { InjectAtlasSdkDriver } from './inject-atlas-sdk.driver.js';
 
 describe('injectAtlasSdk', () => {
@@ -79,5 +80,68 @@ describe('injectAtlasSdk', () => {
     expect(() => driver.get.atlas().assetUrl('logo.svg')).toThrow(
       expect.objectContaining({ code: 'ATLAS_APP_CONTEXT_MISSING' }),
     );
+  });
+
+  it('should call the overridden getWidget with widget id and options when getWidget is called', () => {
+    const getWidget = jest.fn();
+    const widgetId = faker.string.uuid();
+    const options = { inputs: { count: faker.number.int() } };
+
+    driver.given.facadeOverrides({ getWidget }).when.injected();
+
+    driver.get.atlas().getWidget(widgetId, options);
+
+    expect(getWidget).toHaveBeenCalledWith(widgetId, options);
+  });
+
+  it('should return a binding with widget id and inputs when getWidget is overridden', () => {
+    const widgetId = faker.string.uuid();
+    const inputs = { count: faker.number.int() };
+
+    driver.given.facadeOverrides({ getWidget: jest.fn() }).when.injected();
+
+    expect(driver.get.atlas().getWidget(widgetId, { inputs })).toEqual({
+      widgetId,
+      inputs,
+    });
+  });
+
+  it('should return the overridden asset url when assetUrl is overridden', () => {
+    const url = faker.internet.url();
+
+    driver.given
+      .facadeOverrides({ assetUrl: jest.fn(() => url) })
+      .when.injected();
+
+    expect(driver.get.atlas().assetUrl(faker.system.fileName())).toBe(url);
+  });
+
+  it('should return the overridden asset url when assetUrl is overridden without an app context', () => {
+    const url = faker.internet.url();
+
+    driver.given
+      .appContext(undefined)
+      .given.facadeOverrides({ assetUrl: jest.fn(() => url) })
+      .when.injected();
+
+    expect(driver.get.atlas().assetUrl(faker.system.fileName())).toBe(url);
+  });
+
+  it('should return the overridden asset base url when assetBaseUrl is overridden', () => {
+    const url = faker.internet.url();
+
+    driver.given
+      .facadeOverrides({ assetBaseUrl: jest.fn(() => url) })
+      .when.injected();
+
+    expect(driver.get.atlas().assetBaseUrl()).toBe(url);
+  });
+
+  it('should expose custom SDK functions when facade overrides are connected', () => {
+    driver.given.facadeOverrides({ getWidget: jest.fn() }).when.injected();
+
+    driver.get.atlas().greet();
+
+    expect(driver.get.greetMock()).toHaveBeenCalledTimes(1);
   });
 });

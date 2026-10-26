@@ -65,4 +65,50 @@ describe('MockAtlasEnvironmentProvider', () => {
       expect.objectContaining({ code: 'ATLAS_APP_CONTEXT_MISSING' }),
     );
   });
+
+  it('should call the mocked getWidget with widget id and options when a widget is requested through useAtlasSdk', () => {
+    const getWidget = jest.fn();
+    const widgetId = faker.string.uuid();
+    const options = { loadingComponent: () => null };
+
+    driver.given.overrides({ sdk: { getWidget } }).when.rendered();
+
+    driver.get.result().atlas.getWidget(widgetId, options);
+
+    expect(getWidget).toHaveBeenCalledWith(widgetId, options);
+  });
+
+  it('should return the mocked widget component through useAtlasSdk when getWidget returns a component', () => {
+    const Widget = () => null;
+
+    driver.given
+      .overrides({ sdk: { getWidget: jest.fn(() => Widget) } })
+      .when.rendered();
+
+    expect(driver.get.result().atlas.getWidget(faker.string.uuid())).toBe(
+      Widget,
+    );
+  });
+
+  it('should return the mocked asset url through useAtlasSdk when assetUrl is mocked', () => {
+    const url = faker.internet.url();
+
+    driver.given
+      .overrides({ sdk: { assetUrl: jest.fn(() => url) } })
+      .when.rendered();
+
+    expect(driver.get.result().atlas.assetUrl(faker.system.fileName())).toBe(
+      url,
+    );
+  });
+
+  it('should return the mocked asset base url through useAtlasSdk when assetBaseUrl is mocked', () => {
+    const url = faker.internet.url();
+
+    driver.given
+      .overrides({ sdk: { assetBaseUrl: jest.fn(() => url) } })
+      .when.rendered();
+
+    expect(driver.get.result().atlas.assetBaseUrl()).toBe(url);
+  });
 });

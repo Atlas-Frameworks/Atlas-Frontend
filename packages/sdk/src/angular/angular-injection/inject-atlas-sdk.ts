@@ -16,9 +16,11 @@ import {
   createAtlasAppAssetFacade,
   defineUnavailableAppAssets,
 } from '../../core/app-assets/app-assets.js';
+import { overrideAtlasSdkFacade } from '../../core/sdk-facade-overrides/sdk-facade-overrides.js';
 import {
   createAngularAtlasSdk,
   type AngularAtlasSdk,
+  type AngularGetWidgetOptions,
 } from '../angular-widget/index.js';
 import { ATLAS_APP_CONTEXT, ATLAS_SDK } from './tokens.js';
 
@@ -43,7 +45,19 @@ export function injectAtlasSdk<
   });
   if (!context) defineUnavailableAppAssets(atlas);
 
-  return atlas;
+  return overrideAtlasSdkFacade(
+    sdk,
+    atlas,
+    (getWidget) =>
+      <TInputs extends object>(
+        widgetId: string,
+        options: AngularGetWidgetOptions<TInputs>,
+      ) => {
+        getWidget(widgetId, options);
+
+        return atlas.getWidget(widgetId, options);
+      },
+  );
 }
 
 function createAtlasHostDataSignal<

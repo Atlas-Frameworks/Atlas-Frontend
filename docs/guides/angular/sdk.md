@@ -255,6 +255,29 @@ TestBed.configureTestingModule({
 const fixture = TestBed.createComponent(OrdersToolbarComponent);
 ```
 
+To check which Widget a component renders, pass a `getWidget` spy. It receives the same arguments as the Angular `getWidget()`, and `[atlasWidget]` still renders the returned binding. This test uses `OrderSummaryComponent` from [Render a Widget](#render-a-widget):
+
+```ts
+import { TestBed } from '@angular/core/testing';
+import { mockAtlasEnvironment } from '@atlas/testkit';
+import { provideMockAtlasEnvironment } from '@atlas/testkit/angular';
+import { OrderSummaryComponent } from './order-summary.component';
+
+const getWidget = jest.fn();
+TestBed.configureTestingModule({
+  providers: [
+    provideMockAtlasEnvironment(mockAtlasEnvironment({ sdk: { getWidget } })),
+  ],
+});
+const fixture = TestBed.createComponent(OrderSummaryComponent);
+fixture.componentRef.setInput('orderId', '42');
+fixture.detectChanges();
+
+expect(getWidget).toHaveBeenCalledWith('98abc74d-a11f-4eca-8255-c6f2f49e3d6e', {
+  inputs: { orderId: '42' },
+});
+```
+
 See [Testing Apps and Hosts](../testing-apps-and-hosts.md#angular) for navigation, host data, readiness, and Host tests.
 
 ## API summary

@@ -49,26 +49,28 @@ const atlas = mockAtlasEnvironment<CustomerHostSdk, OrderEvents>({
 
 Atlas mocks everything you do not override:
 
-| Part                      | Default                                                                                   |
-| ------------------------- | ----------------------------------------------------------------------------------------- |
-| `hostId`, `hostData.name` | Random values. The app context uses the same `hostId`.                                    |
-| `hostData` custom fields  | Absent until the test sets them in `sdk.hostData` or calls `atlas.updateHostData()`.      |
-| `events`                  | A real in-memory event bus. Tests `emit` and `addEventListener` like another mounted App. |
-| `navigateTo`              | No-op.                                                                                    |
-| `getWidget`               | Returns an inert Widget handle whose `mount()` renders nothing.                           |
-| Custom Host extensions    | Throw `Atlas SDK "<name>" is not mocked` when a test uses one it did not override.        |
-| App manifest              | `anAppManifest()` with random values. Override fields with `app.manifest`.                |
-| App path and URL          | Random App path. Set `app.path`, and `app.url` to start on an inner route.                |
-| App navigation and route  | Scoped navigation and route context over in-memory host navigation.                       |
-| Loading and readiness     | Recorded, so tests can read `atlas.isLoaderVisible()` and `atlas.isReady()`.              |
-| Tab title                 | Recorded, so tests can read `atlas.tabTitle()`.                                           |
-| Asset URLs                | Resolved inside the mocked manifest artifact directory.                                   |
+| Part                       | Default                                                                                                  |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `hostId`, `hostData.name`  | Random values. The app context uses the same `hostId`.                                                   |
+| `hostData` custom fields   | Absent until the test sets them in `sdk.hostData` or calls `atlas.updateHostData()`.                     |
+| `events`                   | A real in-memory event bus. Tests `emit` and `addEventListener` like another mounted App.                |
+| `navigateTo`               | No-op.                                                                                                   |
+| `getWidget`                | The framework `getWidget()` returns a Widget binding (Angular) or component (React) that mounts nothing. |
+| Custom Host extensions     | Throw `Atlas SDK "<name>" is not mocked` when a test uses one it did not override.                       |
+| App manifest               | `anAppManifest()` with random values. Override fields with `app.manifest`.                               |
+| App path and URL           | Random App path. Set `app.path`, and `app.url` to start on an inner route.                               |
+| App navigation and route   | Scoped navigation and route context over in-memory host navigation.                                      |
+| Loading and readiness      | Recorded, so tests can read `atlas.isLoaderVisible()` and `atlas.isReady()`.                             |
+| Tab title                  | Recorded, so tests can read `atlas.tabTitle()`.                                                          |
+| `assetUrl`, `assetBaseUrl` | Resolved inside the mocked manifest artifact directory.                                                  |
 
 Pass `app: null` to test Host components. The environment then has no app context, and `assetUrl()` and `assetBaseUrl()` throw `ATLAS_APP_CONTEXT_MISSING` as they do in a real Host.
 
 ### Mock commands and observe state
 
 Override Host commands, such as `navigateTo`, `getWidget`, or custom extensions like `orders` and `showToast`, with your test runner's spies (`jest.fn()` or `vi.fn()`), and assert on them. The testkit does not depend on a test runner and does not record calls itself.
+
+`getWidget`, `assetUrl`, and `assetBaseUrl` overrides replace the members your components call on `injectAtlasSdk()` or `useAtlasSdk()`, so a spy receives the same arguments your code passes, for example `getWidget(widgetId, { inputs })` in Angular. In Angular, `getWidget()` still returns a working binding for `[atlasWidget]`. In React, a component your spy returns renders in place of the Widget; when the spy returns nothing, the Widget mounts nothing.
 
 Assert on state for the parts Atlas already runs for real:
 

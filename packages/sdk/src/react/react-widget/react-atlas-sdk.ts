@@ -4,6 +4,7 @@ import {
   createAtlasAppAssetFacade,
   defineUnavailableAppAssets,
 } from '../../core/app-assets/app-assets.js';
+import { overrideAtlasSdkFacade } from '../../core/sdk-facade-overrides/sdk-facade-overrides.js';
 import type { AtlasAppContext } from '../../lifecycle.js';
 import { createWidgetComponent } from './widget-component.js';
 import type {
@@ -48,9 +49,33 @@ export function createReactAtlasSdk<
   Object.defineProperty(facade, 'getWidget', {
     value: createWidgetComponentGetter(sdk, new Map()),
   });
-  facades.set(facadeContext, facade);
 
-  return facade;
+  const overridden = overrideAtlasSdkFacade(
+    sdk,
+    facade,
+    (getWidget) =>
+      <TInputs extends object>(
+        widgetId: string,
+        options?: ReactGetWidgetOptions,
+      ): ComponentType<TInputs> => {
+        const widget = getWidget(widgetId, options);
+
+        return isComponentType<TInputs>(widget)
+          ? widget
+          : facade.getWidget<TInputs>(widgetId, options);
+      },
+  );
+  facades.set(facadeContext, overridden);
+
+  return overridden;
+}
+
+function isComponentType<TInputs extends object>(
+  value: unknown,
+): value is ComponentType<TInputs> {
+  return (
+    typeof value === 'function' || (typeof value === 'object' && value !== null)
+  );
 }
 
 function getFacadesOf<THostSdk extends object, TEvents extends object>(

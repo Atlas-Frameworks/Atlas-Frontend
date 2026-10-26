@@ -1,5 +1,10 @@
 import { faker } from '@faker-js/faker';
 import { anAppManifest } from '@atlas/testkit';
+import type { AtlasAppContext } from '../../lifecycle.js';
+import {
+  connectAtlasSdkFacadeOverrides,
+  type AtlasSdkFacadeOverrides,
+} from '../../core/sdk-facade-overrides/sdk-facade-overrides.js';
 import {
   connectAtlasWidgetResolver,
   createAtlasSdk,
@@ -7,14 +12,14 @@ import {
 import { anAppContext } from '../../testkit/app-context.testkit.js';
 import { aMemoryNavigation } from '../../testkit/navigation.testkit.js';
 import { createReactAtlasSdk } from './react-atlas-sdk.js';
-import type { ReactAtlasSdk } from './react-widget.types.js';
+import type { ReactGetWidgetOptions } from './react-widget.types.js';
 
 export class ReactAtlasSdkDriver {
   private readonly sdk = createAtlasSdk({
     hostId: faker.string.uuid(),
     navigation: aMemoryNavigation(),
   });
-  private reactSdk: ReactAtlasSdk = createReactAtlasSdk(this.sdk);
+  private context: AtlasAppContext | undefined;
 
   constructor() {
     connectAtlasWidgetResolver(this.sdk, (widgetId) => ({
@@ -26,17 +31,22 @@ export class ReactAtlasSdkDriver {
 
   readonly given = {
     remoteEntryUrl: (remoteEntryUrl: string) => {
-      this.reactSdk = createReactAtlasSdk(
-        this.sdk,
-        anAppContext({ manifest: anAppManifest({ remoteEntryUrl }) }),
-      );
+      this.context = anAppContext({
+        manifest: anAppManifest({ remoteEntryUrl }),
+      });
+
+      return this;
+    },
+    facadeOverrides: (overrides: AtlasSdkFacadeOverrides) => {
+      connectAtlasSdkFacadeOverrides(this.sdk, overrides);
 
       return this;
     },
   };
 
   readonly get = {
-    widget: (widgetId: string) => this.reactSdk.getWidget<object>(widgetId),
-    reactSdk: () => this.reactSdk,
+    widget: (widgetId: string, options?: ReactGetWidgetOptions) =>
+      this.get.reactSdk().getWidget<object>(widgetId, options),
+    reactSdk: () => createReactAtlasSdk(this.sdk, this.context),
   };
 }
