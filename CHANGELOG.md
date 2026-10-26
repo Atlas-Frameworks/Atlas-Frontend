@@ -5,7 +5,22 @@ All notable changes to Atlas are documented in this file. Atlas follows
 
 ## [Unreleased]
 
+## [1.0.1]
+
+### Added
+
+- Added `AtlasHostAnchorsProvider` to `@atlas/runtime/react`. It provides an
+  `AtlasHostAnchorRegistry` to host anchors without starting Atlas, so Host
+  layout tests can activate a layout and assert which anchors registered.
+  Angular layout tests use `AtlasAngularHostAnchors` from `TestBed`.
+
 ### Changed
+
+- `mockAtlasEnvironment` SDK overrides for `getWidget`, `assetUrl`, and
+  `assetBaseUrl` now replace the members that components read from
+  `injectAtlasSdk()` and `useAtlasSdk()`. `@atlas/sdk/host` exports
+  `connectAtlasSdkFacadeOverrides` for this. The core-level `getWidget`
+  override is removed.
 
 - Made the Artifactory shared writer lock optional. Without
   `ATLAS_ARTIFACTORY_LOCK_RESOURCE`, Atlas no longer requires
@@ -15,6 +30,11 @@ All notable changes to Atlas are documented in this file. Atlas follows
   expected cache policy. Atlas still compares `Content-Type`, size, and
   SHA-256 digest. The `Content-Type` comparison now ignores parameters such as
   `charset`.
+
+### Fixed
+
+- Rewrote asset URLs in styles that Angular appends directly to an App's
+  shadow root.
 
 ## [1.0.0]
 

@@ -325,8 +325,8 @@
     "semantic_hash": ""
   },
   "packages/runtime/src/react.ts": {
-    "mtime": 1790629436.4085915,
-    "ast_hash": "e5b5b81135c0348ca3128d51d40b2054",
+    "mtime": 1793012660.3078563,
+    "ast_hash": "812a5f57e77f03d0f031129cf9c2d209",
     "semantic_hash": ""
   },
   "packages/runtime/tsconfig.json": {
@@ -615,8 +615,8 @@
     "semantic_hash": ""
   },
   "packages/testkit/README.md": {
-    "mtime": 1790614809.5828407,
-    "ast_hash": "89082f439af705fb06dd9e12d596d152",
+    "mtime": 1793012766.1358583,
+    "ast_hash": "59c3925b5d6fd7ac9a54274ae07d36fb",
     "semantic_hash": ""
   },
   "examples/apps/catalog-react/src/exported-widgets/product-count/atlas.config.ts": {
@@ -3480,13 +3480,13 @@
     "semantic_hash": ""
   },
   "packages/runtime/src/react.driver.tsx": {
-    "mtime": 1790629436.4080515,
-    "ast_hash": "b1753a6b60f5853dd8036af43054454b",
+    "mtime": 1793012642.3700335,
+    "ast_hash": "8ff3f9537a3ed3d912f1b34555055947",
     "semantic_hash": ""
   },
   "packages/runtime/src/react.specs.tsx": {
-    "mtime": 1790629436.408389,
-    "ast_hash": "c532b8f9876cc4b2408be82a692aff95",
+    "mtime": 1793012627.033683,
+    "ast_hash": "aa8589f955bd5f46fd4ac891717d77b2",
     "semantic_hash": ""
   },
   "apps/columbus/src/testkit/mocks/useActionsDisabled.ts": {
@@ -5805,8 +5805,8 @@
     "semantic_hash": ""
   },
   "packages/runtime/src/react.types.ts": {
-    "mtime": 1790629436.4088311,
-    "ast_hash": "d1484caf6113023c2677fb39f69bf506",
+    "mtime": 1793012652.321635,
+    "ast_hash": "ac26112e637b8afc07af396eb97a8c61",
     "semantic_hash": ""
   },
   "packages/runtime/src/dom-host/host-navigation.testkit.ts": {
@@ -7190,8 +7190,8 @@
     "semantic_hash": ""
   },
   "docs/guides/testing-apps-and-hosts.md": {
-    "mtime": 1793011852.081095,
-    "ast_hash": "edc4b3641eb4157235280b07ad920291",
+    "mtime": 1793012758.7630284,
+    "ast_hash": "fc4f1eceb86dfa1c9387d6ad3a1cf979",
     "semantic_hash": ""
   },
   "docs/guides/workspaces-and-ci.md": {
@@ -7220,8 +7220,8 @@
     "semantic_hash": ""
   },
   "docs/reference/api.md": {
-    "mtime": 1793011852.0813851,
-    "ast_hash": "d34610b571505fd5d3f10350a848143f",
+    "mtime": 1793012759.4306083,
+    "ast_hash": "1c7888ec48025425d071ae53daf00aa7",
     "semantic_hash": ""
   },
   "docs/reference/cli.md": {
