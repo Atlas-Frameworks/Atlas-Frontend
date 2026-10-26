@@ -165,6 +165,32 @@ To give some routes a different layout, add another `*atlasHostLayout` block wit
 
 > **Expected result:** `AppComponent` compiles, and its template still contains a `default` layout block, one `<atlas-host-status />`, one `<atlas-route-outlet />`, and the hidden `<router-outlet />`.
 
+### Test the layout
+
+A unit test has no running Atlas runtime, so no layout is active and the layout block renders nothing. The anchor components register with the root `AtlasAngularHostAnchors` service. Inject it from `TestBed`, activate the layout before you create the component, then check which anchors registered:
+
+```ts
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { AtlasAngularHostAnchors } from '@atlas/runtime/angular';
+import { AppComponent } from './app.component';
+
+it('renders the sidebar slot in the default layout', () => {
+  TestBed.configureTestingModule({
+    imports: [AppComponent],
+    providers: [provideRouter([])],
+  });
+  const anchors = TestBed.inject(AtlasAngularHostAnchors);
+  anchors.setActiveLayout('default');
+
+  TestBed.createComponent(AppComponent).detectChanges();
+
+  expect(anchors.get('slot', 'sidebar')).toBeInstanceOf(HTMLElement);
+});
+```
+
+`provideRouter([])` is there for the hidden `<router-outlet />`. Read other anchors with `anchors.get('route-outlet')`, `anchors.get('status')`, and `anchors.get('navigation')`. See [Test a Host layout](../testing-apps-and-hosts.md#test-a-host-layout).
+
 ## 4. Provide Host services through the SDK
 
 Apps never import Host source code. Instead, the Host exposes shared capabilities through the [SDK](../../introduction/glossary.md#sdk), and Apps read them with `injectAtlasSdk()`. Define them in `src/app/host.config.ts`, which the generated `src/bootstrap.ts` passes to `defineAngularHost()`.

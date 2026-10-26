@@ -172,11 +172,37 @@ Keep these rules in mind:
 - **Every route needs a layout.** Each App route activates a layout by `layoutId`. Routes that do not set `layoutId` use `"default"`, so keep one `AtlasHostLayout` with `layoutId="default"`. To give some routes a different page frame, see [Use more than one layout](routing.md#use-more-than-one-layout).
 - **Slots follow the anchor.** Atlas mounts a slot App when a matching `AtlasSlot` is rendered and unmounts it when the anchor is removed. If no anchor exists for a slot, the App does not appear.
 - **Use each slot name once.** Atlas tracks one element per slot name.
-- **Anchors need the host provider.** Anchors must render inside the tree that `defineReactHost()` creates. Rendering one in a separate React root throws an error.
+- **Anchors need the host provider.** Anchors must render inside the tree that `defineReactHost()` creates, or inside `AtlasHostAnchorsProvider` in tests. Rendering one in a separate React root throws an error.
 
 To render navigation with your own design system instead of `AtlasNavigation`, use `useAtlasNavigationItems()`. See [Render custom navigation](routing.md#render-custom-navigation).
 
 > **Expected result:** `HostLayout` compiles, and it still contains one `AtlasHostLayout` with `layoutId="default"`, one `AtlasHostStatus`, and one `AtlasRouteOutlet`.
+
+### Test the layout
+
+A unit test has no running Atlas runtime, so no layout is active and `AtlasHostLayout` renders nothing. Create an `AtlasHostAnchorRegistry`, activate the layout, and render `HostLayout` inside `AtlasHostAnchorsProvider`, which provides the registry without starting Atlas. Then check which anchors registered:
+
+```tsx
+import { render } from '@testing-library/react';
+import { AtlasHostAnchorRegistry } from '@atlas/runtime';
+import { AtlasHostAnchorsProvider } from '@atlas/runtime/react';
+import { HostLayout } from './host-layout';
+
+it('renders the sidebar slot in the default layout', () => {
+  const anchors = new AtlasHostAnchorRegistry();
+  anchors.setActiveLayout('default');
+
+  render(
+    <AtlasHostAnchorsProvider anchors={anchors}>
+      <HostLayout />
+    </AtlasHostAnchorsProvider>,
+  );
+
+  expect(anchors.get('slot', 'sidebar')).toBeInstanceOf(HTMLElement);
+});
+```
+
+Read other anchors with `anchors.get('route-outlet')`, `anchors.get('status')`, and `anchors.get('navigation')`. See [Test a Host layout](../testing-apps-and-hosts.md#test-a-host-layout).
 
 ## 4. Provide Host services through the SDK
 
