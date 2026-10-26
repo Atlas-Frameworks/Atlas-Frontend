@@ -42,6 +42,7 @@ import {
 import type { AtlasHostNavigationItem } from './dom-host/host-navigation.types.js';
 import type { AtlasHostRuntime } from './host-runtime/host-runtime.types.js';
 import type {
+  AtlasHostAnchorsProviderProps,
   AtlasHostLayoutProps,
   AtlasHostProviderProps,
   AtlasNavigationProps,
@@ -56,6 +57,7 @@ import type {
 
 export type {
   AtlasErrorProps,
+  AtlasHostAnchorsProviderProps,
   AtlasHostComponents,
   AtlasHostProviderProps,
   HostOptions,
@@ -249,14 +251,23 @@ export function AtlasHostProvider<THostSdk extends object = {}>(
     ),
   });
 
-  return createElement(AtlasHostAnchorsContext.Provider, {
-    value: anchors,
+  return createElement(AtlasHostAnchorsProvider, {
+    anchors,
     children: props.notFound
       ? createElement(AtlasNotFoundContext.Provider, {
           value: props.notFound,
           children: sdkChildren,
         })
       : sdkChildren,
+  });
+}
+
+export function AtlasHostAnchorsProvider(
+  props: AtlasHostAnchorsProviderProps,
+): ReactElement {
+  return createElement(AtlasHostAnchorsContext.Provider, {
+    value: props.anchors,
+    children: props.children,
   });
 }
 

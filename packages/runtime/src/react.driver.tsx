@@ -18,6 +18,7 @@ import type {
   DomHostServices,
   RetryPlacementMount,
 } from './dom-host/dom-host.types.js';
+import type { AtlasHostAnchorRegistry } from './dom-host/host-anchors.js';
 import { publishAtlasNavigationItems } from './dom-host/host-navigation.js';
 import { aNavigationItem } from './dom-host/host-navigation.testkit.js';
 import { aFederationAdapter } from './loader/native-federation.testkit.js';
@@ -43,6 +44,7 @@ const { Link } = await import('react-router-dom');
 
 const {
   AtlasDefaultHostLayout,
+  AtlasHostAnchorsProvider,
   AtlasHostLayout,
   AtlasHostProvider,
   AtlasHostStatus,
@@ -156,6 +158,7 @@ export class ReactAdapterDriver {
   private mounting: Promise<void | AtlasAppMountResult> | undefined;
   private unmount: (() => void | Promise<void>) | undefined;
   private error: unknown;
+  private providedAnchors: AtlasHostAnchorRegistry | undefined;
 
   constructor() {
     startDomHost.mockReset();
@@ -186,6 +189,11 @@ export class ReactAdapterDriver {
   }
 
   readonly given = {
+    anchors: (anchors: AtlasHostAnchorRegistry) => {
+      this.providedAnchors = anchors;
+
+      return this;
+    },
     defaultLayout: () => {
       this.useDefaultLayout = true;
 
@@ -261,6 +269,14 @@ export class ReactAdapterDriver {
   };
 
   readonly when = {
+    anchorsProviderRendered: () => {
+      this.rendered = render(
+        createElement(AtlasHostAnchorsProvider, {
+          anchors: this.anchors(),
+          children: this.layout(),
+        }),
+      );
+    },
     hostRendered: () =>
       act(async () => {
         this.rendered = render(this.host());
@@ -445,7 +461,21 @@ export class ReactAdapterDriver {
   }
 
   private anchors() {
-    return this.get.startedOptions().anchors!;
+    return this.providedAnchors ?? this.get.startedOptions().anchors!;
+  }
+
+  private layout() {
+    return [
+      createElement(AtlasHostStatus, { key: 'status' }),
+      createElement(
+        AtlasHostLayout,
+        { key: 'layout', layoutId: LAYOUT_ID },
+        createElement('div', { 'data-testid': 'layout-content' }),
+        createElement(AtlasNavigation),
+        createElement(AtlasSlot, { slotId: SLOT_ID }),
+        createElement(AtlasRouteOutlet),
+      ),
+    ];
   }
 
   private host(): ReactNode {
@@ -454,15 +484,7 @@ export class ReactAdapterDriver {
       : [
           createElement(SdkConsumer, { key: 'sdk' }),
           createElement(NavigationItemsConsumer, { key: 'items' }),
-          createElement(AtlasHostStatus, { key: 'status' }),
-          createElement(
-            AtlasHostLayout,
-            { key: 'layout', layoutId: LAYOUT_ID },
-            createElement('div', { 'data-testid': 'layout-content' }),
-            createElement(AtlasNavigation),
-            createElement(AtlasSlot, { slotId: SLOT_ID }),
-            createElement(AtlasRouteOutlet),
-          ),
+          ...this.layout(),
         ];
 
     return createElement(AtlasHostProvider<HostSdk>, {

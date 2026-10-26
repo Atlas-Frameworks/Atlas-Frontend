@@ -2,6 +2,7 @@
 
 import { faker } from '@faker-js/faker';
 import { aHostCatalog, aHostRuntimeConfig } from '@atlas/testkit';
+import { AtlasHostAnchorRegistry } from './dom-host/host-anchors.js';
 import { ReactAdapterDriver } from './react.driver.js';
 
 describe('AtlasHostProvider', () => {
@@ -208,6 +209,56 @@ describe('AtlasHostProvider', () => {
 
     expect(driver.get.renderError()).toMatchObject({
       code: 'ATLAS_HOST_PROVIDER_MISSING',
+    });
+  });
+});
+
+describe('AtlasHostAnchorsProvider', () => {
+  let driver: ReactAdapterDriver;
+
+  beforeEach(() => {
+    driver = new ReactAdapterDriver();
+  });
+
+  describe('when a layout is rendered inside the provider', () => {
+    beforeEach(() => {
+      driver.given
+        .anchors(new AtlasHostAnchorRegistry())
+        .when.anchorsProviderRendered();
+    });
+
+    it('should not start the dom host when rendered', () => {
+      expect(driver.get.startDomHostMock()).not.toHaveBeenCalled();
+    });
+
+    it('should register the status anchor when rendered', () => {
+      expect(driver.get.anchorTag('status')).toBe('ATLAS-STATUS');
+    });
+
+    it('should hide layout content when no layout is active', () => {
+      expect(driver.get.layoutContentPresent()).toBe(false);
+    });
+
+    describe('when the layout is activated', () => {
+      beforeEach(async () => {
+        await driver.when.layoutActivated();
+      });
+
+      it('should show layout content when activated', () => {
+        expect(driver.get.layoutContentPresent()).toBe(true);
+      });
+
+      it('should register the navigation anchor when activated', () => {
+        expect(driver.get.anchorTag('navigation')).toBe('ATLAS-NAVIGATION');
+      });
+
+      it('should register the slot anchor by slot id when activated', () => {
+        expect(driver.get.slotTag()).toBe('ATLAS-SLOT');
+      });
+
+      it('should register the mount element inside atlas-route-outlet as the route-outlet anchor when activated', () => {
+        expect(driver.get.routeOutletParentTag()).toBe('ATLAS-ROUTE-OUTLET');
+      });
     });
   });
 });

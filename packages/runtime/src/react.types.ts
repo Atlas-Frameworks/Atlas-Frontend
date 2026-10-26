@@ -105,6 +105,11 @@ export interface HostProviderState<THostSdk extends object> {
   services: ReactHostStartServices;
 }
 
+export interface AtlasHostAnchorsProviderProps {
+  anchors: AtlasHostAnchorRegistry;
+  children?: ReactNode;
+}
+
 export interface AtlasHostLayoutProps {
   layoutId: string;
   children?: ReactNode;

@@ -262,6 +262,52 @@ Host tests should prove that:
 
 To render a Host component that reads the SDK, use `mockAtlasEnvironment({ app: null })` with the React or Angular provider shown above.
 
+### Test a Host layout
+
+A Host layout renders its children only while Atlas activates its layout ID, and its anchors register with an anchor registry. In a unit test there is no running runtime, so give the layout a real `AtlasHostAnchorRegistry`, activate the layout yourself, and assert on what registered. Read anchors with `anchors.get('route-outlet')`, `anchors.get('status')`, `anchors.get('navigation')`, and `anchors.get('slot', slotId)`. Call `anchors.setActiveLayout()` again to switch layouts during a test.
+
+These helpers come from `@atlas/runtime`, not `@atlas/testkit`, because the runtime owns the anchors.
+
+In React, wrap the layout in `AtlasHostAnchorsProvider`. It provides the registry without starting Atlas:
+
+```tsx
+import { render } from '@testing-library/react';
+import { AtlasHostAnchorRegistry } from '@atlas/runtime';
+import { AtlasHostAnchorsProvider } from '@atlas/runtime/react';
+import { CustomerLayout } from './CustomerLayout';
+
+it('renders the header slot in the default layout', () => {
+  const anchors = new AtlasHostAnchorRegistry();
+  anchors.setActiveLayout('default');
+
+  render(
+    <AtlasHostAnchorsProvider anchors={anchors}>
+      <CustomerLayout />
+    </AtlasHostAnchorsProvider>,
+  );
+
+  expect(anchors.get('slot', 'header')).toBeInstanceOf(HTMLElement);
+});
+```
+
+In Angular, the anchor components already use the root `AtlasAngularHostAnchors` service. Inject it from `TestBed` and activate the layout before you create the component:
+
+```ts
+import { TestBed } from '@angular/core/testing';
+import { AtlasAngularHostAnchors } from '@atlas/runtime/angular';
+import { CustomerLayoutComponent } from './customer-layout.component';
+
+it('renders the header slot in the default layout', () => {
+  TestBed.configureTestingModule({ imports: [CustomerLayoutComponent] });
+  const anchors = TestBed.inject(AtlasAngularHostAnchors);
+  anchors.setActiveLayout('default');
+
+  TestBed.createComponent(CustomerLayoutComponent).detectChanges();
+
+  expect(anchors.get('slot', 'header')).toBeInstanceOf(HTMLElement);
+});
+```
+
 ## Test locally in the browser
 
 Run the Host and the App the same way you do during development, in two terminals from your workspace root:

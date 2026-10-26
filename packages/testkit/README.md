@@ -18,6 +18,8 @@ npm install --save-dev --save-exact @atlas/testkit
 | `@atlas/testkit/react`   | `MockAtlasEnvironmentProvider` for React tests                      |
 | `@atlas/testkit/angular` | `provideMockAtlasEnvironment` for Angular tests                     |
 
+Host layout tests use `@atlas/runtime` instead, because the runtime owns the host anchors: `AtlasHostAnchorRegistry` with `AtlasHostAnchorsProvider` in React, or `AtlasAngularHostAnchors` in Angular. See [Test a Host layout](https://github.com/bendaj11/atlas/blob/main/docs/guides/testing-apps-and-hosts.md#test-a-host-layout).
+
 ## Documentation
 
 - [Testing Apps and Hosts](https://github.com/bendaj11/atlas/blob/main/docs/guides/testing-apps-and-hosts.md)
